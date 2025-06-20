@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useExport } from "@/contexts/ExportContext";
 
 interface Todo {
@@ -28,21 +28,20 @@ const TodoApp = () => {
     localStorage.setItem("todo-list", JSON.stringify(todos));
   }, [todos]);
 
+  const exportData = useMemo(() => () => ({
+    todos,
+    totalTodos: todos.length,
+    completedTodos: todos.filter(todo => todo.completed).length,
+    lastModified: new Date().toISOString()
+  }), [todos]);
+
   useEffect(() => {
-    // Register export function
-    const exportData = () => ({
-      todos,
-      totalTodos: todos.length,
-      completedTodos: todos.filter(todo => todo.completed).length,
-      lastModified: new Date().toISOString()
-    });
-    
     registerApp("todo", exportData);
     
     return () => {
       unregisterApp("todo");
     };
-  }, [todos, registerApp, unregisterApp]);
+  }, [exportData, registerApp, unregisterApp]);
 
   const addTodo = () => {
     if (inputValue.trim()) {
@@ -93,25 +92,34 @@ const TodoApp = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header - Add Todo */}
-      <div className="mb-6">
-        <div className="flex gap-3 mb-4">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && addTodo()}
-              className="w-full px-4 py-3 bg-gray-50/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-800 placeholder-gray-400 transition-all duration-200"
-              placeholder="What needs to be done? ✨"
-            />
+    <div className="h-full flex flex-col max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-white">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
           </div>
+          <h1 className="text-xl font-medium text-slate-900">Tasks</h1>
+        </div>
+
+        {/* Add Todo */}
+        <div className="flex gap-3 mb-6">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && addTodo()}
+            className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 text-slate-900 placeholder-slate-400 transition-colors"
+            placeholder="Add a new task..."
+          />
           <button
             onClick={addTodo}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
+            disabled={!inputValue.trim()}
+            className="px-4 py-3 bg-slate-800 text-white rounded-lg hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            ➕ Add
+            Add
           </button>
         </div>
 
@@ -120,19 +128,19 @@ const TodoApp = () => {
           <div className="flex gap-3">
             <button
               onClick={clearCompleted}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-sm rounded-xl transition-all duration-200 font-medium"
+              className="px-3 py-2 text-slate-600 hover:text-slate-900 text-sm transition-colors"
             >
-              🧹 Clear Completed
+              Clear Completed
             </button>
             <button
               onClick={exportTodos}
-              className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
+              className="px-3 py-2 text-slate-600 hover:text-slate-900 text-sm transition-colors"
             >
-              📤 Export
+              Export
             </button>
           </div>
-          <div className="text-sm text-gray-600 bg-gray-100 backdrop-blur-sm px-3 py-1 rounded-lg border border-gray-200">
-            {todos.filter(todo => !todo.completed).length} remaining
+          <div className="text-sm text-slate-500">
+            {todos.filter(todo => !todo.completed).length} of {todos.length} remaining
           </div>
         </div>
       </div>
@@ -140,41 +148,49 @@ const TodoApp = () => {
       {/* Todo List */}
       <div className="flex-1 overflow-y-auto space-y-2">
         {todos.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-400">
+          <div className="flex items-center justify-center h-48 text-slate-400">
             <div className="text-center">
-              <div className="text-4xl mb-4">📝</div>
-              <p>No todos yet. Add one above to get started!</p>
+              <div className="w-12 h-12 mx-auto mb-3 bg-slate-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <p className="font-medium text-slate-600 mb-1">No tasks yet</p>
+              <p className="text-sm text-slate-500">Add your first task above</p>
             </div>
           </div>
         ) : (
           todos.map(todo => (
-            <div key={todo.id} className="group bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-4 hover:bg-white/80 transition-all duration-200 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={todo.completed}
-                    onChange={() => toggleTodo(todo.id)}
-                    className="w-5 h-5 rounded-md border-2 border-gray-300 bg-transparent checked:bg-emerald-500 checked:border-emerald-500 transition-all duration-200"
-                  />
+            <div key={todo.id} className={`group bg-white border border-slate-200 rounded-lg p-4 hover:border-slate-300 transition-colors ${todo.completed ? 'opacity-50' : ''}`}>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => toggleTodo(todo.id)}
+                  className={`w-4 h-4 rounded border transition-colors flex items-center justify-center ${
+                    todo.completed 
+                      ? 'bg-slate-800 border-slate-800 text-white' 
+                      : 'border-slate-300 hover:border-slate-400'
+                  }`}
+                >
                   {todo.completed && (
-                    <div className="absolute inset-0 flex items-center justify-center text-white text-xs">
-                      ✓
-                    </div>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   )}
-                </div>
-                <span className={`flex-1 transition-all duration-200 ${
+                </button>
+                <span className={`flex-1 transition-colors ${
                   todo.completed 
-                    ? "line-through text-gray-400" 
-                    : "text-gray-800"
+                    ? "line-through text-slate-400" 
+                    : "text-slate-900"
                 }`}>
                   {todo.text}
                 </span>
                 <button
                   onClick={() => deleteTodo(todo.id)}
-                  className="opacity-0 group-hover:opacity-100 px-3 py-1 bg-red-100 text-red-600 text-xs rounded-lg hover:bg-red-200 transition-all duration-200"
+                  className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 transition-all"
                 >
-                  Delete
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
               </div>
             </div>

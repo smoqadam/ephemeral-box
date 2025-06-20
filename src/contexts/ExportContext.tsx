@@ -1,47 +1,39 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useCallback, useRef } from 'react';
 
-interface AppData {
-  [appId: string]: any;
+interface ExportFunction {
+  (): any;
 }
 
 interface ExportContextType {
-  registerApp: (appId: string, exportFn: () => any) => void;
+  registerApp: (appId: string, exportFunction: ExportFunction) => void;
   unregisterApp: (appId: string) => void;
   exportAllApps: () => void;
 }
 
 const ExportContext = createContext<ExportContextType | undefined>(undefined);
 
-export const useExport = () => {
-  const context = useContext(ExportContext);
-  if (!context) {
-    throw new Error("useExport must be used within an ExportProvider");
-  }
-  return context;
-};
+export const ExportProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const registeredApps = useRef<Map<string, ExportFunction>>(new Map());
 
-export const ExportProvider = ({ children }: { children: ReactNode }) => {
-  const [appExporters, setAppExporters] = useState<Map<string, () => any>>(new Map());
+  const registerApp = useCallback((appId: string, exportFunction: ExportFunction) => {
+    registeredApps.current.set(appId, exportFunction);
+  }, []);
 
-  const registerApp = (appId: string, exportFn: () => any) => {
-    setAppExporters(prev => new Map(prev).set(appId, exportFn));
-  };
+  const unregisterApp = useCallback((appId: string) => {
+    registeredApps.current.delete(appId);
+  }, []);
 
-  const unregisterApp = (appId: string) => {
-    setAppExporters(prev => {
-      const newMap = new Map(prev);
-      newMap.delete(appId);
-      return newMap;
-    });
-  };
-
-  const exportAllApps = () => {
-    const allData: AppData = {};
+  const exportAllApps = useCallback(() => {
+    const allData: Record<string, any> = {};
     
-    appExporters.forEach((exportFn, appId) => {
-      allData[appId] = exportFn();
+    registeredApps.current.forEach((exportFn, appId) => {
+      try {
+        allData[appId] = exportFn();
+      } catch (error) {
+        console.error(`Failed to export data for app ${appId}:`, error);
+      }
     });
 
     const dataStr = JSON.stringify(allData, null, 2);
@@ -50,16 +42,30 @@ export const ExportProvider = ({ children }: { children: ReactNode }) => {
     
     const link = document.createElement("a");
     link.href = url;
-    link.download = `ephemeral-tools-export-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `ephemeral-export-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  }, []);
+
+  const value = {
+    registerApp,
+    unregisterApp,
+    exportAllApps,
   };
 
   return (
-    <ExportContext.Provider value={{ registerApp, unregisterApp, exportAllApps }}>
+    <ExportContext.Provider value={value}>
       {children}
     </ExportContext.Provider>
   );
+};
+
+export const useExport = () => {
+  const context = useContext(ExportContext);
+  if (context === undefined) {
+    throw new Error('useExport must be used within an ExportProvider');
+  }
+  return context;
 };

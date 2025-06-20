@@ -1,43 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useExport } from "@/contexts/ExportContext";
+import { useAppAutoSave } from "@/hooks/useAppAutoSave";
+import { useAutoSave } from "@/contexts/AutoSaveContext";
 
 const NotepadApp = () => {
   const [content, setContent] = useState<string>("");
   const [saved, setSaved] = useState<boolean>(true);
   const { registerApp, unregisterApp } = useExport();
+  const { autoSaveEnabled } = useAutoSave();
+  const { loadSavedData } = useAppAutoSave("notepad", content, 1000);
 
+  // Load saved data on mount
   useEffect(() => {
-    // Load from localStorage
-    const savedContent = localStorage.getItem("notepad-content");
-    if (savedContent) {
-      setContent(savedContent);
+    const loadData = async () => {
+      const savedContent = await loadSavedData();
+      if (savedContent) {
+        setContent(savedContent);
+      }
+    };
+    loadData();
+  }, [loadSavedData]);
+
+  // Clear localStorage data if auto-save is disabled
+  useEffect(() => {
+    if (!autoSaveEnabled) {
+      localStorage.removeItem("notepad-content");
     }
-  }, []);
+  }, [autoSaveEnabled]);
+
+  const exportData = useMemo(() => () => ({
+    content,
+    lastModified: new Date().toISOString()
+  }), [content]);
 
   useEffect(() => {
-    // Register export function
-    const exportData = () => ({
-      content,
-      lastModified: new Date().toISOString()
-    });
-    
     registerApp("notepad", exportData);
     
     return () => {
       unregisterApp("notepad");
     };
-  }, [content, registerApp, unregisterApp]);
+  }, [exportData, registerApp, unregisterApp]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
-    setSaved(false);
+    setSaved(autoSaveEnabled); // Only mark as saved if auto-save is enabled
   };
 
   const saveContent = () => {
-    localStorage.setItem("notepad-content", content);
-    setSaved(true);
+    if (autoSaveEnabled) {
+      // Auto-save will handle this
+      setSaved(true);
+    } else {
+      // Manual save to temporary state only (no persistence)
+      setSaved(true);
+    }
     
     // Show saved indicator briefly
     setTimeout(() => {
@@ -73,34 +91,52 @@ const NotepadApp = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-3">
-          <button
-            onClick={saveContent}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
-          >
-            💾 Save
-          </button>
-          <button
-            onClick={clearContent}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-sm rounded-xl transition-all duration-200 font-medium"
-          >
-            🗑️ Clear
-          </button>
-          <button
-            onClick={exportNotepad}
-            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
-          >
-            📤 Export
-          </button>
+      <div className="flex justify-between items-center mb-8">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-white">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-medium text-slate-900">Notes</h1>
+          {!autoSaveEnabled && (
+            <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+              Auto-save disabled
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${saved ? "bg-emerald-500" : "bg-orange-500"} animate-pulse`}></div>
-          <span className={`text-sm font-medium ${saved ? "text-emerald-600" : "text-orange-600"}`}>
-            {saved ? "Saved" : "Unsaved"}
-          </span>
+        
+        <div className="flex items-center gap-6">
+          <div className="flex gap-4">
+            <button
+              onClick={saveContent}
+              className="text-slate-600 hover:text-slate-900 text-sm transition-colors"
+              disabled={autoSaveEnabled}
+            >
+              Save
+            </button>
+            <button
+              onClick={clearContent}
+              className="text-slate-600 hover:text-slate-900 text-sm transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={exportNotepad}
+              className="text-slate-600 hover:text-slate-900 text-sm transition-colors"
+            >
+              Export
+            </button>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${saved ? "bg-slate-800" : "bg-slate-400"}`}></div>
+            <span className={`text-sm ${saved ? "text-slate-800" : "text-slate-500"}`}>
+              {autoSaveEnabled ? (saved ? "Auto-saved" : "Saving...") : (saved ? "Saved" : "Unsaved")}
+            </span>
+          </div>
         </div>
       </div>
       
@@ -109,14 +145,14 @@ const NotepadApp = () => {
         <textarea
           value={content}
           onChange={handleChange}
-          onBlur={saveContent}
-          className="w-full h-full p-6 bg-gray-50/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-800 placeholder-gray-400 resize-none transition-all duration-200 text-base leading-relaxed"
-          placeholder="Start writing your thoughts here... ✨"
+          onBlur={autoSaveEnabled ? undefined : saveContent}
+          className="w-full h-full p-6 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 text-slate-900 placeholder-slate-400 resize-none transition-colors text-base leading-relaxed"
+          placeholder="Start writing..."
         />
         
         {/* Character count */}
-        <div className="absolute bottom-4 right-4 text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-md border border-gray-200">
-          {content.length} characters
+        <div className="absolute bottom-3 right-3 text-xs text-slate-400">
+          {content.length.toLocaleString()} characters
         </div>
       </div>
     </div>
