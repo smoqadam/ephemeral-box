@@ -4,6 +4,7 @@ import { useState } from "react";
 import Dock from "@/components/Dock";
 import StatusBar from "@/components/StatusBar";
 import WelcomeScreen from "@/components/WelcomeScreen";
+import { ExportProvider } from "@/contexts/ExportContext";
 import { AppWindow } from "@/types";
 
 // Import apps
@@ -32,27 +33,39 @@ export default function Home() {
     : null;
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 flex flex-col">
-      {/* Status Bar */}
-      <StatusBar activeApp={activeAppTitle} />
-      
-      {/* App Content Area */}
-      <div className="relative flex-grow w-full">
-        {ActiveComponent ? (
-          <div className="w-full h-full p-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md">
-            <ActiveComponent />
-          </div>
-        ) : (
-          <WelcomeScreen />
-        )}
+    <ExportProvider>
+      <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 flex flex-col relative">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-500/5 to-emerald-500/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-orange-500/5 to-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+        
+        {/* Status Bar */}
+        <StatusBar activeApp={activeAppTitle} />
+        
+        {/* App Content Area */}
+        <div className="relative flex-grow w-full z-10">
+          {ActiveComponent ? (
+            <div className="w-full h-full p-6">
+              <div className="w-full h-full bg-white/90 backdrop-blur-xl border border-gray-200/50 rounded-2xl shadow-2xl overflow-hidden">
+                <div className="w-full h-full p-6">
+                  <ActiveComponent />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <WelcomeScreen />
+          )}
+        </div>
+        
+        {/* Dock */}
+        <Dock 
+          apps={apps} 
+          onAppClick={switchApp} 
+          activeAppId={activeAppId} 
+        />
       </div>
-      
-      {/* Dock */}
-      <Dock 
-        apps={apps} 
-        onAppClick={switchApp} 
-        activeAppId={activeAppId} 
-      />
-    </div>
+    </ExportProvider>
   );
 }

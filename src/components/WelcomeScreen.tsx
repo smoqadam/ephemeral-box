@@ -1,31 +1,50 @@
+"use client";
+
 import React from 'react';
 
 const WelcomeScreen = () => {
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
-      <div className="mb-6 p-6 rounded-full bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-800 dark:to-gray-900">
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          className="h-16 w-16 text-gray-500 dark:text-gray-400" 
-          fill="none" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={1} 
-            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
-          />
-        </svg>
-      </div>
-      <div className="text-center">
-        <h1 className="text-3xl font-light text-gray-700 dark:text-gray-300 mb-3">
-          Welcome to OS Ephemeral
-        </h1>
-        <p className="text-sm max-w-md text-gray-400 dark:text-gray-500">
-          A lightweight, modern operating system interface. Select an app from the dock below to begin.
-        </p>
+    <div className="w-full h-full flex items-center justify-center p-8">
+      <div className="text-center max-w-2xl">
+        <div className="mb-8">
+          <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-500 via-emerald-500 to-orange-500 rounded-3xl flex items-center justify-center shadow-2xl">
+            <div className="text-white text-3xl font-bold">E</div>
+          </div>
+          <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-blue-600 via-emerald-600 to-orange-600 bg-clip-text text-transparent">
+            Ephemeral OS
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+            A beautiful, ephemeral workspace for your temporary tasks and notes.
+            <br />
+            Everything lives in memory - nothing persists unless you export it.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+          <div className="bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-xl p-6 hover:bg-white/80 transition-all duration-300 shadow-lg">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+              <span className="text-blue-600 text-lg">📝</span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Quick Notes</h3>
+            <p className="text-gray-600 text-sm">
+              Jot down thoughts, ideas, and temporary notes with our elegant notepad.
+            </p>
+          </div>
+          
+          <div className="bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-xl p-6 hover:bg-white/80 transition-all duration-300 shadow-lg">
+            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
+              <span className="text-emerald-600 text-lg">✅</span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Task Management</h3>
+            <p className="text-gray-600 text-sm">
+              Organize your tasks and todos with a clean, distraction-free interface.
+            </p>
+          </div>
+        </div>
+        
+        <div className="mt-8 text-gray-500 text-sm">
+          Click on an app in the dock below to get started
+        </div>
       </div>
     </div>
   );
