@@ -1,6 +1,10 @@
-# Ephemeral Tools
+# Ephemeral Box
 
-A collection of lightweight, browser-based productivity tools designed for temporary use. No data persistence by default - embrace the ephemeral nature of quick tasks and temporary workflows.
+A lightweight, modern operating system interface with ephemeral tools and utilities.
+
+## 🌐 Live Demo
+
+Visit [ebox.saeedm.com](https://ebox.saeedm.com) to try Ephemeral Box.
 
 ## ✨ Features
 
@@ -10,7 +14,7 @@ A collection of lightweight, browser-based productivity tools designed for tempo
 - **Clean Interface**: Minimalist design focused on productivity
 - **Optional Auto-save**: Enable persistent storage if needed (with clear warnings)
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
 ```bash
 npm install
@@ -56,6 +60,17 @@ Enable auto-save only when persistence is truly needed.
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
 - **IndexedDB** - Optional local storage
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Repository
+- **GitHub**: [smoqadam/ephemeral-box](https://github.com/smoqadam/ephemeral-box)
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
 
 ---
 

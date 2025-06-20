@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'OS Ephemeral',
-  description: 'A lightweight, modern operating system interface',
+  title: 'Ephemeral Box',
+  description: 'A lightweight, modern operating system interface - ephemeral tools and utilities',
 };
 
 export default function RootLayout({
@@ -24,6 +24,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="canonical" href="https://ebox.saeedm.com" />
+        <meta name="repository" content="https://github.com/smoqadam/ephemeral-box" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>
