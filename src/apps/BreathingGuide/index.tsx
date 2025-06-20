@@ -142,7 +142,8 @@ export default function BreathingGuide() {
   };
 
   const getCircleScale = () => {
-    const progress = (selectedPattern[currentPhase] - timeLeft) / selectedPattern[currentPhase];
+    const phaseDuration = selectedPattern[currentPhase] ?? 0;
+    const progress = phaseDuration > 0 ? (phaseDuration - timeLeft) / phaseDuration : 0;
     
     switch (currentPhase) {
       case "inhale":
